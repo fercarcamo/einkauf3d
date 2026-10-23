@@ -36,3 +36,18 @@ test('Einzelauswahl begrenzt Wiedergabe, Kennzahlen, Bestände und Zeitraum auf 
  scope=playbackSelection([a,b],'');assert.equal(scope.orders.length,2);assert.equal(scope.end,30*DAY);
  scope=playbackSelection([],'ORD-A');assert.deepEqual(scope.orders,[]);assert.equal(scope.start,null);assert.equal(scope.end,null);
 });
+
+test('Zahlung ist trotz Folgeereignissen kein Engpass; Abschlusszahlen sind getrennt',async()=>{
+ const {aggregate,analyzeOrder}=await import('../analytics.js');
+ const paid=Array.from({length:20},()=>make([[0,0],[8,1],[0,20],[2,30]]));
+ const waiting=make([[1,0],[2,15]]);
+ const orders=[...paid,waiting];for(const o of orders)o.analysis=analyzeOrder(o.events);
+ const snapshot=stationLoad(orders,10*DAY,3);
+ assert.equal(snapshot.completed,20);assert.equal(snapshot.stations[8].count,0);
+ assert.equal(snapshot.stations[8].overdue,0);assert.deepEqual(snapshot.ranked.map(s=>s.step),[1]);
+ assert.equal(aggregate(orders,10*DAY).active,1);
+ assert.equal(stationLoad(paid,10*DAY).ranked.length,0);
+ assert.equal(stationLoad(paid,0).completed,0);
+ assert.equal(stationLoad(paid,22*DAY).stations[0].count,20);
+ assert.equal(stationLoad(paid,40*DAY).completed,20);
+});

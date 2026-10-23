@@ -30,7 +30,7 @@ export function aggregate(orders,now=Infinity) {
   for(const o of orders){
     const a=o.analysis;
     events+=o.events.length;occurred+=o.events.filter(e=>e.t<=now).length;
-    if(o.first<=now){started++;if(now<o.last)active++;}
+    if(o.first<=now){started++;if(now<o.last&&o.events.filter(e=>e.t<=now).at(-1)?.step!==8)active++;}
     if(a.payment!==null){paid++;if(a.payment<=now)paidNow++;}
     if(a.assessable)assessable++;
     if(a.reasons.length)maverick++;

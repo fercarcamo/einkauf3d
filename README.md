@@ -104,3 +104,7 @@ npm run preview
 ```
 
 Anschließend http://localhost:8000 öffnen.
+
+## Abschluss und Engpassbestand
+
+„Make Payment“ ist ein Abschlussereignis. Nach einer Zahlung entsteht kein Engpassbestand an dieser Station, auch wenn weitere Ereignisse unter derselben Order_ID folgen. Die Zahlungsstation zeigt stattdessen die kumulierte Anzahl der Bestellungen mit mindestens einer Zahlung bis zum Wiedergabezeitpunkt. Diese Abschlusszahl wird weder gerankt noch als lange Verweildauer markiert. Spätere Log-Ereignisse werden weiterhin chronologisch gezeigt; ein erneut beobachteter anderer Schritt kann wieder einen Bestand bilden. „Aktuell aktiv“ schließt Intervalle direkt nach Zahlung aus. Die Engpassrangliste zeigt ausschließlich laufende Bestände an Schritten vor dem Abschluss.

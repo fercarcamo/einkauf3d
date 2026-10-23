@@ -12,12 +12,14 @@ export function replayState(order,now){
 }
 export function stationLoad(orders,now,thresholdDays=7){
  const stations=Array.from({length:9},(_,step)=>({step,count:0,totalAge:0,maxAge:0,overdue:0,meanAge:0}));
- let endedWithoutPayment=0;
- for(const o of orders){const state=replayState(o,now);if(!state){if(now>=o.last&&!o.events.some(e=>e.step===8&&e.t<=now))endedWithoutPayment++;continue;}
+ let endedWithoutPayment=0,completed=0;
+ for(const o of orders){if(o.events.some(e=>e.step===8&&e.t<=now))completed++;const state=replayState(o,now);if(!state){if(now>=o.last&&!o.events.some(e=>e.step===8&&e.t<=now))endedWithoutPayment++;continue;}
+ // Payment is a completion event, never an inter-event waiting queue.
+ if(state.from===8)continue;
  const s=stations[state.from];s.count++;s.totalAge+=state.ageDays;s.maxAge=Math.max(s.maxAge,state.ageDays);if(state.ageDays>=thresholdDays)s.overdue++;}
  for(const s of stations)s.meanAge=s.count?s.totalAge/s.count:0;
- const ranked=stations.filter(s=>s.count).sort((a,b)=>b.count-a.count||b.meanAge-a.meanAge||a.step-b.step);
- return {stations,ranked,endedWithoutPayment};
+ const ranked=stations.filter(s=>s.step!==8&&s.count).sort((a,b)=>b.count-a.count||b.meanAge-a.meanAge||a.step-b.step);
+ return {stations,ranked,endedWithoutPayment,completed};
 }
 
 // One shared scope for the scene, timeline, KPIs and station loads.
